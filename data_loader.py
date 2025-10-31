@@ -2,11 +2,11 @@
 Data Loader for MIR-QBSH Corpus
 """
 
-import os 
-import numpy as np 
-from pathlib import Path 
-from typing import Dict, List, Tuple 
-import mido 
+import os
+import numpy as np
+from pathlib import Path
+from typing import Dict, List, Tuple
+import mido
 
 class MIRQBSHDataset:
 
@@ -23,7 +23,7 @@ class MIRQBSHDataset:
         print(f"  - {len(self.song_list)} ground-truth songs")
         print(f"  - {len(self.query_files)} query files")
 
-    
+
     def _load_song_list(self) -> Dict[str, Dict]:
         songs = {}
 
@@ -41,7 +41,7 @@ class MIRQBSHDataset:
                         'num_recordings': int(parts[3])
                      }
 
-        return songs    
+        return songs
 
 
     def _find_all_queries(self) -> List[Path]:
@@ -58,6 +58,7 @@ class MIRQBSHDataset:
                 query_files.extend(pv_files)
 
         return sorted(query_files)
+
 
     def load_query_pv(self, filepath: Path) -> np.ndarray:
         pitches = []
@@ -83,14 +84,14 @@ class MIRQBSHDataset:
             midi_filename = song_key + '.mid'
 
         midi_path = self.midi_dir / midi_filename
-        
+
         midi = mido.MidiFile(midi_path)
 
         pitch_vector = self._midi_to_pitch_vector(midi, frame_rate)
-        
+
         return pitch_vector
 
-    def _midi_to_pitch_vector(self, midi: mido.MidiFile, frame_rate: float) -> np.ndarray:   
+    def _midi_to_pitch_vector(self, midi: mido.MidiFile, frame_rate: float) -> np.ndarray:
         ticks_per_beat = midi.ticks_per_beat
         tempo = 500000
 
@@ -116,7 +117,7 @@ class MIRQBSHDataset:
                         'time': time_seconds,
                         'pitch': msg.note,
                         'type': 'on'
-                    })     
+                    })
                 elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
                     time_seconds = track_time * seconds_per_tick
                     notes.append({
@@ -127,19 +128,19 @@ class MIRQBSHDataset:
 
         if not notes:
             return np.array([])
-        
+
         notes.sort(key=lambda x: x['time'])
-        
+
         max_time = notes[-1]['time']
         num_frames = int(max_time * frame_rate) + 1
-        
+
         pitch_vector = np.zeros(num_frames)
         active_notes = set()
-        
+
         note_idx = 0
         for frame_idx in range(num_frames):
             frame_time = frame_idx / frame_rate
-            
+
             while note_idx < len(notes) and notes[note_idx]['time'] <= frame_time:
                 note = notes[note_idx]
                 if note['type'] == 'on':
@@ -147,20 +148,20 @@ class MIRQBSHDataset:
                 else:
                     active_notes.discard(note['pitch'])
                 note_idx += 1
-            
+
             if active_notes:
                 pitch_vector[frame_idx] = max(active_notes)
             else:
                 pitch_vector[frame_idx] = 0
-        
+
         return pitch_vector
-    
+
     def get_ground_truth_mapping(self) -> Dict[str, str]:
         ground_truth = {}
-        
+
         for query_path in self.query_files:
 
-            query_name = query_path.stem  
+            query_name = query_path.stem
 
             if query_name in self.song_list:
                 ground_truth[str(query_path)] = query_name
@@ -170,12 +171,12 @@ class MIRQBSHDataset:
                     if song_info['filename'] == midi_name:
                         ground_truth[str(query_path)] = song_key
                         break
-        
+
         return ground_truth
-    
+
     def load_all_templates(self, frame_rate: float = 31.25) -> Dict[str, np.ndarray]:
         templates = {}
-        
+
         print("Loading templates...")
         for song_key in self.song_list:
             try:
@@ -184,5 +185,5 @@ class MIRQBSHDataset:
                 print(f"  Loaded: {song_key} ({len(pitch_vector)} frames)")
             except Exception as e:
                 print(f"  Error loading {song_key}: {e}")
-        
-        return templates            
+
+        return templates
