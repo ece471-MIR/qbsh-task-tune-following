@@ -13,7 +13,7 @@ class DTWWrapper():
 
 
     def _compute_d_beg(self, query: list[float], template: list[float]):
-        return ((query[2] - query[3]) / 2) - ((template[2] - template[3]) / 2)
+        return ((query[2] + query[3]) / 2) - ((template[2] + template[3]) / 2)
 
     def _tune_follow(self,
                      query: np.ndarray,
@@ -53,11 +53,14 @@ class DTWWrapper():
                 query: np.ndarray = query_in
 
             # We DGAF about the path, we grab the final cost to get there
-            cost = librosa.sequence.dtw(X=query, Y=template)[0][-1,-1]
+            cost = librosa.sequence.dtw(
+                X=query,
+                Y=template[0:len(query)],
+                band_rad=0.5
+            )[0][-1,-1]
 
             # LAZY
             costs.append(cost)
             templates.append(template_info)
-
         # Return the most confident choice
         return templates[np.argmin(costs)]
