@@ -21,20 +21,20 @@ class DTWWrapper():
                           query: np.ndarray,
                           template: np.ndarray,
                           output: np.ndarray,
-                          a: float) -> np.float64:
+                          a: np.float64):
         """
             For each step:
                 calculate the error between the template and query
                 feed back the previous time step's error, scaled by how
                 aggressively we want to match the pitch
         """
-        e_i = query[idx] - template[idx]
+        e_i = -query[idx] + template[idx]
         if idx == 0:
             output[0] = a * e_i
             return
 
         self._tune_follow_step(idx-1, query, template, output, a)
-        output[idx] = a * e_i + (1-a)*(output[idx-1])
+        output[idx] = (a * e_i) + ((1-a) * (output[idx-1]))
         return
 
     def _tune_follow(self,
@@ -42,18 +42,22 @@ class DTWWrapper():
                      template: np.ndarray,
                      align_speed: float = 0.05) -> np.ndarray:
         """
-            By computing the pitch difference between the start of our query
-            andf template, and then subtracting that difference from every
-            element in the query, we get both sequences to start at the same key
-        """
-        # align pitch at start
-        d_beg = self._compute_d_beg(query, template)
-        query -= d_beg
+            see figure 6 in DOI: 10.2478/aoa-2014-0050
+            credit to Bartlomiej Stasiak
 
+            we are recursively calculating filter coeffs to scale our query
+            vector by. this is just taking the error at every time step and
+            biasing it with the previous time step to tell us whether to pitch
+            down or pitch up.
+
+            the rate of change can be adjusted (`align_speed`)
+        """
         # recursively calculate tune following
-        q_len = min(map(len, [query, template] ))
+        q_len = min(map(len, [query, template]))
         np.resize(query, (q_len,))
         np.resize(template, (q_len,))
+
+        # preallocate array to hold the query w/ tune following
         query_wtf = np.empty([q_len,], dtype=np.float64)*np.nan
 
         self._tune_follow_step(
@@ -61,7 +65,7 @@ class DTWWrapper():
             query,
             template,
             query_wtf,
-            align_speed
+            np.float64(align_speed)
         )
         return query + query_wtf
 
@@ -85,6 +89,15 @@ class DTWWrapper():
             template = self.database.load_template_midi(
                 template_info
             )
+
+            """
+            By computing the pitch difference between the start of our query
+            andf template, and then subtracting that difference from every
+            element in the query, we get both sequences to start at the same key
+            """
+            d_beg = self._compute_d_beg(query_in, template)
+            query_in -= d_beg
+
             if tuned:
                 query: np.ndarray = self._tune_follow(query_in, template)
             else:
@@ -100,5 +113,7 @@ class DTWWrapper():
             # LAZY
             costs.append(cost)
             templates.append(template_info)
-        # Return the most confident choice
-        return templates[np.argmin(costs)]
+
+        # Return the top 10 choices
+        templates = np.array(templates)
+        return templates[np.argsort(costs)[:10].tolist()].tolist()

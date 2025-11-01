@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 dataset = MIRQBSHDataset("./data/MIR-QBSH")
 
-query_path = dataset.query_files[1]
+query_path = dataset.query_files[7]
 raw_query = dataset.load_query_pv(query_path)
 
 template = dataset.load_template_midi(query_path.stem)
@@ -25,16 +25,20 @@ for do_we_tune in [False, True]:
 
     print(f"Predicted: {predicted_template}, actual: {query_path.stem}")
 
-    template_guessed = dataset.load_template_midi(predicted_template)
+    template_guessed = dataset.load_template_midi(predicted_template[0])
 
+    processed -= dtw_computer._compute_d_beg(
+        processed, template_guessed
+    )
     if do_we_tune:
-        tuned_processed = dtw_computer._tune_follow(processed, template_guessed)
+        tune_processed = dtw_computer._tune_follow(processed, template_guessed)
     else:
         tune_processed = processed
 
+    q_len = tune_processed.size
     plt.figure(figsize=(12, 4))
-    plt.plot(template, label='Actual', alpha=0.7)
-    plt.plot(template_guessed, label='Guessed', alpha=0.7)
+    plt.plot(template[:q_len], label='Actual', alpha=0.7)
+    plt.plot(template_guessed[:q_len], label=f'Guessed {predicted_template[0]}', alpha=0.7)
     plt.plot(tune_processed, label='Query', alpha=0.7)
     plt.legend()
     plt.xlabel('Frame')
