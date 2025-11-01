@@ -2,6 +2,11 @@
 Re-Implementation of Tune Following procedure for MIREX 2016s QbSH task
 Replication of Stasiak (2014) "Follow That Tune" paper using librosa's DTW implementation.
 
+## Prerequisite
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) for
+your platform
+
 ## Setup
 
 1. **Create virtual environment and install dependencies:**
