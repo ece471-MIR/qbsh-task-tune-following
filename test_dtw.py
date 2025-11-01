@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 dataset = MIRQBSHDataset("./data/MIR-QBSH")
 
-query_path = dataset.query_files[0]
+query_path = dataset.query_files[1]
 raw_query = dataset.load_query_pv(query_path)
 
 template = dataset.load_template_midi(query_path.stem)

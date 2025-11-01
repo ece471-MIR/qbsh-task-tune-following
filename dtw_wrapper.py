@@ -1,6 +1,7 @@
 from data_loader import MIRQBSHDataset
 import librosa
 import numpy as np
+import scipy.ndimage as ndi
 from tqdm import tqdm
 
 class DTWWrapper():
@@ -15,17 +16,54 @@ class DTWWrapper():
     def _compute_d_beg(self, query: list[float], template: list[float]):
         return ((query[2] + query[3]) / 2) - ((template[2] + template[3]) / 2)
 
+    def _tune_follow_step(self,
+                          idx: int,
+                          query: np.ndarray,
+                          template: np.ndarray,
+                          output: np.ndarray,
+                          a: float) -> np.float64:
+        """
+            For each step:
+                calculate the error between the template and query
+                feed back the previous time step's error, scaled by how
+                aggressively we want to match the pitch
+        """
+        e_i = query[idx] - template[idx]
+        if idx == 0:
+            output[0] = a * e_i
+            return
+
+        self._tune_follow_step(idx-1, query, template, output, a)
+        output[idx] = a * e_i + (1-a)*(output[idx-1])
+        return
+
     def _tune_follow(self,
                      query: np.ndarray,
-                     template: np.ndarray) -> np.ndarray:
+                     template: np.ndarray,
+                     align_speed: float = 0.05) -> np.ndarray:
         """
             By computing the pitch difference between the start of our query
             andf template, and then subtracting that difference from every
             element in the query, we get both sequences to start at the same key
         """
+        # align pitch at start
         d_beg = self._compute_d_beg(query, template)
         query -= d_beg
-        return query
+
+        # recursively calculate tune following
+        q_len = min(map(len, [query, template] ))
+        np.resize(query, (q_len,))
+        np.resize(template, (q_len,))
+        query_wtf = np.empty([q_len,], dtype=np.float64)*np.nan
+
+        self._tune_follow_step(
+            q_len-1,
+            query,
+            template,
+            query_wtf,
+            align_speed
+        )
+        return query + query_wtf
 
     # public
 
