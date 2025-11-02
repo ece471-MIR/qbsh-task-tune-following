@@ -118,11 +118,7 @@ class DTWWrapper():
                 query: np.ndarray = query_in
 
             # We DGAF about the path, we grab the final cost to get there
-            cost = librosa.sequence.dtw(
-                X=query,
-                Y=template[0:len(query)],
-                band_rad=0.5
-            )[0][-1,-1]
+            cost = np.sum(np.absolute(query - template[0:len(query)]))
 
             # LAZY
             costs.append(cost)
