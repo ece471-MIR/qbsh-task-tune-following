@@ -54,8 +54,8 @@ class DTWWrapper():
         """
         # recursively calculate tune following
         q_len = min(map(len, [query, template]))
-        np.resize(query, (q_len,))
-        np.resize(template, (q_len,))
+        query = np.resize(query, (q_len,))
+        template = np.resize(template, (q_len,))
 
         # preallocate array to hold the query w/ tune following
         query_wtf = np.empty([q_len,], dtype=np.float64)*np.nan
@@ -67,7 +67,9 @@ class DTWWrapper():
             query_wtf,
             np.float64(align_speed)
         )
+
         return query + query_wtf
+
 
     # public
 
@@ -99,7 +101,17 @@ class DTWWrapper():
             query_in -= d_beg
 
             if tuned:
-                query: np.ndarray = self._tune_follow(query_in, template)
+                D, wp = librosa.sequence.dtw(
+                    Y=query_in,
+                    X=template[0:len(query_in)],
+                    band_rad=0.5
+                )
+                warped_query = query_in[wp[:,0][::-1]]
+
+                query: np.ndarray = self._tune_follow(
+                    warped_query,
+                    template
+                )
             else:
                 query: np.ndarray = query_in
 
