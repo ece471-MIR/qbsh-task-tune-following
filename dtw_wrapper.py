@@ -114,7 +114,9 @@ class DTWWrapper():
                 query: np.ndarray = query_interm
 
             # We DGAF about the path, we grab the final cost to get there
-            cost = np.sum(np.absolute(query[0:len(template)] - template[0:len(query)]))
+            cost = np.sum(np.absolute(
+                np.subtract(query[0:len(template)], template[0:len(query)])
+            ))
 
             # LAZY
             costs.append(cost)
