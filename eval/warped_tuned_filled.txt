@@ -1,0 +1,10 @@
+Do we warp: True
+Do we tune: True
+Do we fill template unvoiced sections: True
+Loaded dataset:
+  - 48 ground-truth songs
+  - 4431 query files
+
+Results:
+ Top Ten Score:  68.99119837508464%
+ Best Hit Score: 36.15436696005416%
