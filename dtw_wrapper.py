@@ -32,7 +32,6 @@ class DTWWrapper():
 
             the rate of change can be adjusted (`align_speed`)
         """
-        # recursively calculate tune following
         q_len = min(map(len, [query, template]))
         query = np.resize(query, (q_len,))
         template = np.resize(template, (q_len,))
