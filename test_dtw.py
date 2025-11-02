@@ -21,6 +21,7 @@ dtw_computer = DTWWrapper(dataset)
 for do_we_tune in [False, True]:
     print(f"Do we tune: {do_we_tune}")
     predicted_template = dtw_computer.match_query_in_database(processed,
+                                                              warp=do_we_tune,
                                                               tuned=do_we_tune)
 
     print(f"Predicted: {predicted_template}, actual: {query_path.stem}")
