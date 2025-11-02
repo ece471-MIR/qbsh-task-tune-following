@@ -21,21 +21,22 @@ class DTWWrapper():
                           query: np.ndarray,
                           template: np.ndarray,
                           output: np.ndarray,
-                          a: np.float64):
+                          a: np.float64) -> np.float64:
         """
             For each step:
                 calculate the error between the template and query
                 feed back the previous time step's error, scaled by how
                 aggressively we want to match the pitch
         """
-        e_i = -query[idx] + template[idx]
+        
         if idx == 0:
-            output[0] = a * e_i
-            return
+            output[0] = query[idx]
+            return a * (-query[idx] + template[idx])
 
-        self._tune_follow_step(idx-1, query, template, output, a)
-        output[idx] = (a * e_i) + ((1-a) * (output[idx-1]))
-        return
+        e_i = self._tune_follow_step(idx-1, query, template, output, a)
+
+        output[idx] = query[idx] + e_i
+        return a * (-query[idx] + template[idx] + (((1-a) / a) * e_i))
 
     def _tune_follow(self,
                      query: np.ndarray,
@@ -68,7 +69,8 @@ class DTWWrapper():
             np.float64(align_speed)
         )
 
-        return query + query_wtf
+        # return query + query_wtf
+        return query_wtf
 
 
     # public
