@@ -12,38 +12,51 @@ assert (not uni_w) or (not bi_w), "Warp cannot be uni- and bi-directional!"
 tune = '-t' in args or '--tune' in args
 fill = '-f' in args or '--fill' in args
 
-print(f'Unidirectional DTW: {uni_w}')
-print(f'Bidirectional DTW: {bi_w}')
-print(f'Tune-Following: {tune}')
-print(f'Template Unvoiced Filling: {fill}')
+outfile = 'eval/eval_'
+if uni_w:
+    outfile += 'u'
+elif bi_w:
+    outfile += 'b'
+if tune:
+    outfile += 't'
+if fill:
+    outfile += 'f'
+outfile += '.txt'
+print(f'Writing eval results to {outfile}')
 
-dataset = MIRQBSHDataset("./data/MIR-QBSH")
-query_paths = dataset.query_files
-query_count = len(query_paths)
+with open(outfile, 'w') as sys.stdout:
+    print(f'Unidirectional DTW: {uni_w}')
+    print(f'Bidirectional DTW: {bi_w}')
+    print(f'Tune-Following: {tune}')
+    print(f'Template Unvoiced Filling: {fill}')
 
-top_ten_count = 0
-best_hit_count = 0
-for query_path in tqdm(query_paths):
-    raw_query = dataset.load_query_pv(query_path)
-    processed = preprocess_query(raw_query)
-    template = query_path.stem
+    dataset = MIRQBSHDataset("./data/MIR-QBSH")
+    query_paths = dataset.query_files
+    query_count = len(query_paths)
 
-    dtwtf_computer = DTWTFWrapper(dataset)
-    predicted_template = dtwtf_computer.match_query_in_database(
-        query_in=processed,
-        uni_w=uni_w,
-        bi_w=bi_w,
-        tune=tune,
-        fill=fill,
-        prog_bar=False
-    )
+    top_ten_count = 0
+    best_hit_count = 0
+    for query_path in tqdm(query_paths):
+        raw_query = dataset.load_query_pv(query_path)
+        processed = preprocess_query(raw_query)
+        template = query_path.stem
 
-    if template == predicted_template[0]:
-        best_hit_count += 1
-        top_ten_count += 1
-    elif template in predicted_template:
-        top_ten_count += 1
+        dtwtf_computer = DTWTFWrapper(dataset)
+        predicted_template = dtwtf_computer.match_query_in_database(
+            query_in=processed,
+            uni_w=uni_w,
+            bi_w=bi_w,
+            tune=tune,
+            fill=fill,
+            prog_bar=False
+        )
 
-print('\nResults:')
-print(f' Top Ten Score:  {(100.0 * top_ten_count) / query_count}%')
-print(f' Best Hit Score: {(100.0 * best_hit_count) / query_count}%')
+        if template == predicted_template[0]:
+            best_hit_count += 1
+            top_ten_count += 1
+        elif template in predicted_template:
+            top_ten_count += 1
+
+    print('\nResults:')
+    print(f' Top Ten Score:  {(100.0 * top_ten_count) / query_count} %')
+    print(f' Best Hit Score: {(100.0 * best_hit_count) / query_count} %')

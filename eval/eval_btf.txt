@@ -7,5 +7,7 @@ Loaded dataset:
   - 4431 query files
 
 Results:
- Top Ten Score:  79.55314827352743%
- Best Hit Score: 64.45497630331754%
+% Top Ten Score:
+79.55314827352743
+% Best Hit Score:
+64.45497630331754
