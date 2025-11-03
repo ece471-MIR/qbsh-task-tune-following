@@ -6,13 +6,16 @@ from tqdm import tqdm
 import sys
 
 args = sys.argv[1:]
-do_we_warp = '--warp' in args
-do_we_tune = '--tune' in args
-fill_temp = '--fill_templates' in args
+uni_w = '-u' in args or '--uni'  in args
+bi_w  = '-b' in args or '--bi'   in args
+assert (not uni_w) or (not bi_w), "Warp cannot be uni- and bi-directional!"
+tune = '-t' in args or '--tune' in args
+fill = '-f' in args or '--fill' in args
 
-print(f'Do we warp: {do_we_warp}')
-print(f'Do we tune: {do_we_tune}')
-print(f'Do we fill template unvoiced sections: {fill_temp}')
+print(f'Unidirectional DTW: {uni_w}')
+print(f'Bidirectional DTW: {bi_w}')
+print(f'Tune-Following: {tune}')
+print(f'Template Unvoiced Filling: {fill}')
 
 dataset = MIRQBSHDataset("./data/MIR-QBSH")
 query_paths = dataset.query_files
@@ -26,16 +29,19 @@ for query_path in tqdm(query_paths):
     template = query_path.stem
 
     dtw_computer = DTWWrapper(dataset)
-    predicted_template = dtw_computer.match_query_in_database(processed,
-                                                                warp=do_we_warp,
-                                                                tuned=do_we_tune,
-                                                                fill_temp=fill_temp,
-                                                                prog_bar=False)
+    predicted_template = dtw_computer.match_query_in_database(
+        query_in=processed,
+        uni_w=uni_w,
+        bi_w=bi_w,
+        tune=tune,
+        fill=fill,
+        prog_bar=False
+    )
 
     if template == predicted_template[0]:
         best_hit_count += 1
         top_ten_count += 1
-    elif query_path.stem in predicted_template:
+    elif template in predicted_template:
         top_ten_count += 1
 
 print('\nResults:')

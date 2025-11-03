@@ -87,12 +87,12 @@ def compute_initial_transposition(
     template: np.ndarray
 ) -> float:
     
-    if len(query) < 3 or len(template) < 3:
-        q_mean = np.mean(query[:min(3, len(query))])
-        t_mean = np.mean(template[:min(3, len(template))])
+    if len(query) < 8 or len(template) < 8:
+        q_mean = np.mean(query[:len(query)])
+        t_mean = np.mean(template[:len(template)])
     else:
-        q_mean = (query[1] + query[2]) / 2.0
-        t_mean = (template[1] + template[2]) / 2.0
+        q_mean = (query[6] + query[7]) / 2.0
+        t_mean = (template[6] + template[7]) / 2.0
 
     d_beg = q_mean - t_mean 
 

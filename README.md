@@ -68,18 +68,32 @@ uv run python test_tune_following.py [-q NUMBER]
 
 Passing in `-q NUMBER` allows the specification of a query.
 
-Plots the query vector after DTW, query vector after DTW & tone following to the correct template and the correct template vector with and without filling unvoiced sections of the template vector. Saves the plots to `tune_following_effect_q{NUMBER}_fill_temp_True.png` and `tune_following_effect_q{NUMBER}_fill_temp_False.png`.
+Plots the query vector after DTW, query vector after unidirectional DTW & tone following to the correct template and the correct template vector with and without filling unvoiced sections of the template vector. Saves the plots to `tune_following_effect_q{NUMBER}_fill_temp_True.png` and `tune_following_effect_q{NUMBER}_fill_temp_False.png`.
+
 
 ## Evaluation
 ```bash
-uv run python eval_loop.py [--warp] [--tune] [--fill_templates] 
+uv run python eval_loop.py [-u] [-b] [-t] [-f] 
 ```
 
 Loops over all queries and infers a template from all templates.  
-`--warp` enables DTW.  
-`--tune` enables TF.  
-`--fill_templates` fills unvoiced sections of the template vectors.
+`-u`: enables unidirectional DTW (restricts template warping). Do not specify -b  
+`-b`: enables bidirectional DTW (allows template warping). Do not specify -u
+`-t` or `--tune`: enables TF.  
+`-f` or `--fill`: fills unvoiced sections of the template vectors.
 
 Outputs percentage of queries for which the top inference was correct (Best Hit Score) and for which the correct template was in the top 10 inferences (Top Ten Score).
 
 Results are provided in [eval/](eval/).
+
+## Inference
+```bash
+uv run python infer.py [-u] [-b] [-t] [-f] [-q NUMBER]
+```
+
+Infers the template of a provided query.
+
+Arguments function as specified in Test Tune Following, Evaluation.
+
+Plots the (optionally warped or tune-fitted) query against its true template (optionally filled or warped) and the top incorrect guess (same conditions) in separate subplots. Saves the plots to `inference_q{NUMBER}_[u][b][t][f].png`
+
