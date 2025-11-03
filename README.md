@@ -66,10 +66,9 @@ Infers the template of a provided query.
 
 Plots the (optionally warped or tune-fitted) query against its true template (optionally filled or warped) and the top incorrect guess (same conditions) in separate subplots. Saves the plots to `inference_q{NUMBER}_[u][b][t][f].png`
 
-
 ## Evaluation
 ```bash
-uv run python eval_loop.py [-u] [-b] [-t] [-f] 
+uv run python eval_loop.py [-u] [-b] [-t] [-f]
 ```
 
 Loops over all queries and infers a template from all templates.  
@@ -80,4 +79,13 @@ Loops over all queries and infers a template from all templates.
 
 Outputs percentage of queries for which the top inference was correct (Best Hit Score) and for which the correct template was in the top 10 inferences (Top Ten Score).
 
-Results are provided in [eval/](eval/).
+Results are saved to and provided in [eval/](eval/).
+
+## Evaluation Plot
+```bash
+uv run python eval_plot.py
+```
+
+Plot evaluation results across all algorithm varieties.
+
+Plot is saved to `plots/eval_plot.png`
