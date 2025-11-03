@@ -1,0 +1,11 @@
+Unidirectional DTW: False
+Bidirectional DTW: False
+Tune-Following: False
+Template Unvoiced Filling: False
+Loaded dataset:
+  - 48 ground-truth songs
+  - 4431 query files
+
+Results:
+ Top Ten Score:  55.856465809072446%
+ Best Hit Score: 31.257052584066802%
