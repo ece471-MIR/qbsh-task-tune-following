@@ -1,6 +1,6 @@
 from data_loader import MIRQBSHDataset
 from preprocessing import preprocess_query
-from dtw_wrapper import DTWWrapper
+from dtwtf_wrapper import DTWTFWrapper
 import matplotlib.pyplot as plt
 import sys
 
@@ -13,7 +13,7 @@ assert (not uni_w) or (not bi_w), "Warp cannot be uni- and bi-directional!"
 tune  = '-t' in args or '--tune' in args
 fill  = '-f' in args or '--fill' in args
 if '-q' in args: # bad arg checking
-    assert args.size >= args.index('-q'), "Must pass a query number after '-q'!"
+    assert len(args) >= args.index('-q'), "Must pass a query number after '-q'!"
     query_file = int(args[args.index('-q') + 1])
 else:
     query_file = 15
@@ -24,7 +24,7 @@ print(f'Tune-Following: {tune}')
 print(f'Template Unvoiced Filling: {fill}')
 
 dataset = MIRQBSHDataset("./data/MIR-QBSH")
-dtw_computer = DTWWrapper(dataset)
+dtwtf_computer = DTWTFWrapper(dataset)
 
 query_path = dataset.query_files[query_file]
 raw_query = dataset.load_query_pv(query_path)
@@ -32,7 +32,7 @@ query_processed = preprocess_query(raw_query)
 
 template = dataset.load_template_midi(query_path.stem)
 
-predicted_template = dtw_computer.match_query_in_database(
+predicted_template = dtwtf_computer.match_query_in_database(
     query_in=query_processed,
     uni_w=uni_w,
     bi_w=bi_w,
@@ -79,38 +79,40 @@ else:
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 9))
 
 # top subplot: processed query and correct template (whether guessed or not)
-q1, t1, i1 = dtw_computer.fit_template(
+q1, t1, i1 = dtwtf_computer.fit_template(
     query_in=query_processed,
     template_in=template,
     uni_w=uni_w, bi_w=bi_w, tune=tune, fill=fill)
+len_1 = min(len(q1), len(t1), len(i1))
 
-ax1.plot(t1, label=f'Template{t_suffix}', alpha=0.7)
+ax1.plot(t1[:len_1], label=f'Template{t_suffix}', alpha=0.7)
 if tune:
-    ax1.plot(i1, label=f'Query{i_suffix}', alpha=0.7)
-ax1.plot(q1, label=f'Query{q_suffix}', alpha=0.7)
+    ax1.plot(i1[:len_1], label=f'Query{i_suffix}', alpha=0.7)
+ax1.plot(q1[:len_1], label=f'Query{q_suffix}', alpha=0.7)
 ax1.legend()
 ax1.set_xlabel('Frame')
 ax1.set_ylabel('MIDI Note')
 ax1.set_title(f'Query Matched to Correct Template {t1_type}')
 
 # bottom subplot: processed query and top incorrect guess
-q2, t2, i2 = dtw_computer.fit_template(
+q2, t2, i2 = dtwtf_computer.fit_template(
     query_in=query_processed,
     template_in=dataset.load_template_midi(
         predicted_template[
             1 if query_path.stem == predicted_template[0] else 0
         ]),
     uni_w=uni_w, bi_w=bi_w, tune=tune, fill=fill)
+len_2 = min(len(q2), len(t2), len(i2))
 
-ax2.plot(t2, label=f'Template{t_suffix}', alpha=0.7)
+ax2.plot(t2[:len_2], label=f'Template{t_suffix}', alpha=0.7)
 if tune:
-    ax2.plot(i2, label=f'Query{i_suffix}', alpha=0.7)
-ax2.plot(q2, label=f'Query{q_suffix}', alpha=0.7)
+    ax2.plot(i2[:len_2], label=f'Query{i_suffix}', alpha=0.7)
+ax2.plot(q2[:len_2], label=f'Query{q_suffix}', alpha=0.7)
 ax2.legend()
 ax2.set_xlabel('Frame')
 ax2.set_ylabel('MIDI Note')
 ax2.set_title(f'Query Matched to Best Incorrect Template Guess {t2_type}')
 
-plt.savefig(f'inference_q{query_file}{f_suffix}.png')
-print(f"Saved visualization to inference_q{query_file}{f_suffix}.png")
+plt.savefig(f'plots/inference_q{query_file}{f_suffix}.png')
+print(f"Saved visualization to plots/inference_q{query_file}{f_suffix}.png")
 plt.show()

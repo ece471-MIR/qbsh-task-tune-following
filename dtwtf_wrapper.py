@@ -5,7 +5,7 @@ import numpy as np
 import scipy.ndimage as ndi
 from tqdm import tqdm
 
-class DTWWrapper():
+class DTWTFWrapper():
     database: MIRQBSHDataset = None
 
     # private

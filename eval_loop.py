@@ -1,6 +1,6 @@
 from data_loader import MIRQBSHDataset
 from preprocessing import preprocess_query
-from dtw_wrapper import DTWWrapper
+from dtwtf_wrapper import DTWTFWrapper
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import sys
@@ -28,8 +28,8 @@ for query_path in tqdm(query_paths):
     processed = preprocess_query(raw_query)
     template = query_path.stem
 
-    dtw_computer = DTWWrapper(dataset)
-    predicted_template = dtw_computer.match_query_in_database(
+    dtwtf_computer = DTWTFWrapper(dataset)
+    predicted_template = dtwtf_computer.match_query_in_database(
         query_in=processed,
         uni_w=uni_w,
         bi_w=bi_w,
